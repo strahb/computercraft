@@ -5,15 +5,32 @@ Mystical Agriculture has 5+1 Essences (Custom Essence tier). This program should
 
 local bridge = peripheral.find("meBridge")
 
-if getMethods(bridge) == nil then
+if bridge == nil then
     print("ME Bridge Not Found! Now exiting...")
-    os.exit()
+    error()
 else
-    local TotalStorage = bridge.getTotalItemStorage() / (1024*1024)
+    local TotalStorage = bridge.getTotalItemStorage() / (1024*1024*1024)
     print("ME Bridge Connected")
-    print(string.format("Total Item Storage: %.2f MB", totalStorage))
+    print(string.format("Total Item Storage: %.2f GB", TotalStorage))
 end
 
-local function GetItemCount(lookup_value)
-    
+local function GetItem(lookup_value)
+    local item = bridge.getItem({name = lookup_value})
+    if item then
+        return item
+    else
+        print("Item not found: " .. lookup_value)
+        return 0 -- Return 0 if item is not found
+    end
+end
+
+local itemData = GetItem("mysticalagriculture:inferium_essence")
+
+if itemData.amount ~= 0 then
+    local count = itemData.amount  -- Extract item amount
+    local displayName = itemData.displayName  -- Extract item display name
+
+    print(displayName .. ": " .. count)
+else
+    print("Item not found in ME system.")
 end
