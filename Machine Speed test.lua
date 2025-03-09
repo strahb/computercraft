@@ -7,13 +7,14 @@ local function countInput(machine)
     local TotalInput = 0
     for i=0,8 do
         TotalInput = TotalInput + mek.getInput(i)
+    end
     return TotalInput
 end
 
 -- Function to repeat until machine empty
 local function EmptyRepeat(side)
     repeat countInput(mek)
-    until countInput(mek) = 0
+    until countInput(mek) == 0
 end
 
 
