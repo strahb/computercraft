@@ -4,14 +4,30 @@ Mystical Agriculture has 5+1 Essences (Custom Essence tier). This program should
 -- 
 
 local bridge = peripheral.find("meBridge")
+-- Configure Monitor
+local monitor = peripheral.find("monitor")
+monitor.setTextScale(1) -- Adjust scale (1 to 5)
+monitor.clear()
+monitor.setCursorPos(1,1)
+
+
+local itemData = 0
+local essences = {
+    "mysticalagriculture:inferium_essence", 
+    "mysticalagriculture:prudentium_essence", 
+    "mysticalagriculture:tertium_essence", 
+    "mysticalagriculture:imperium_essence", 
+    "mysticalagriculture:supremium_essence", 
+    "mysticalagradditions:insanium_essence" 
+}
 
 if bridge == nil then
-    print("ME Bridge Not Found! Now exiting...")
+    print("ME Bridge Not Found!")
     error()
 else
     local TotalStorage = bridge.getTotalItemStorage() / (1024*1024*1024)
-    print("ME Bridge Connected")
-    print(string.format("Total Item Storage: %.2f GB", TotalStorage))
+    print("ME Bridge Connected!")
+    print(string.format("Item Storage: %.2f GB", TotalStorage))
 end
 
 local function GetItem(lookup_value)
@@ -24,13 +40,17 @@ local function GetItem(lookup_value)
     end
 end
 
-local itemData = GetItem("mysticalagriculture:inferium_essence")
 
-if itemData.amount ~= 0 then
-    local count = itemData.amount  -- Extract item amount
-    local displayName = itemData.displayName  -- Extract item display name
 
-    print(displayName .. ": " .. count)
-else
-    print("Item not found in ME system.")
+for i, essenceName in ipairs(essences) do
+    print("index: " .. i)
+    itemData = GetItem(essenceName)
+    if itemData and itemData.amount ~= 0 then -- If item amount equals 0 then it errors out
+        local count = itemData.amount  -- Extract item amount
+        local displayName = itemData.displayName  -- Extract item display name
+
+        print(displayName .. ": " .. count)
+    else
+        print(itemData.displayName .. " not found in ME system.")
+    end
 end
