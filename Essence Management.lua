@@ -10,5 +10,4 @@
     It keeps exporting the second highest tier until the highest tier is fully crafted
     and then it stops exporting the second highest. ALL ESSENCE IS EXPORTED BY DEFAULT 
     The recipe is:  4x Lower Tier = 1x Higher Tier
-]]
-    Testing 
+]] 
