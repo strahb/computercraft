@@ -33,12 +33,24 @@ local monitor = peripheral.find("monitor") if peripheral.find("monitor") == nil 
         print("Monitor Ready")
 end
 
-local bridge = peripheral.find("meBridge") if peripheral.find("meBridge") ~= nil then
-    -- Find and wrap the ME Bridge, if bridge not found the code will error out and exit
-        print("ME Bridge found and online")
-        bridge = peripheral.
+local bridge = peripheral.find("meBridge") if bridge == nil then
+    print("ME Bridge Not Found! Now exiting...")
+    error()
+else
+    local TotalStorage = bridge.getTotalItemStorage() / (1024*1024*1024)
+    print("ME Bridge Connected")
+    print(string.format("Total Item Storage: %.2f GB", TotalStorage))
+end
+
+local function GetItem(ItemID)
+    -- Function to fetch item information from the bridge
+    local item = bridge.getItem({name = ItemID})
+    if item then
+        return item
     else
-        error("ME Bridge not found or network offline")
+        print("Item not found: " .. ItemID)
+        return 0 -- Return 0 if item is not found
+    end
 end
 
 local function ExportItem(ItemID, Amount)
@@ -46,5 +58,19 @@ local function ExportItem(ItemID, Amount)
     formatted_query = {item=ItemID, count=Amount} --[[ Properly form the request as the bridge cannot look up a simple string
     I could do it in a single line but it would make the code very hard to read ]] 
     bridge.exportItem({formatted_query, "up"})
-    print("Exported " .. Amount .. " " .. tostring(ItemID))
+    print(string.format("Exported %d %s", Amount, ItemID))
+end
+
+exportable_essences =   {"mysticalagriculture:inferium_essence",
+                        "mysticalagriculture:prudentium_essence",
+                        "mysticalagriculture:tertium_essence",
+                        "mysticalagriculture:imperium_essence",
+                        "mysticalagriculture:supremium_essence"}
+
+for i, EssenceName in ipairs(exportable_essences) do
+    essence = GetItem(EssenceName)
+    if essence ~= 0 then -- Execute the block as long as GetItem does not return "0" (Refer to line 52)
+        print(essence.displayName)
+        print(essence.amount)
+    end
 end
