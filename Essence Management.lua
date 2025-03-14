@@ -55,7 +55,7 @@ end
 
 local function ExportItem(ItemID, Amount)
     -- Function to export item to the upper side of the bridge
-    FormattedQuery = { item = ItemID, count = Amount } --[[ Format the Query
+    local FormattedQuery = { name = ItemID, count = Amount } --[[ Format the Query
         name: string	The registry name of the item
         fingerprint: string?	A unique fingerprint which identifies the item to craft
         amount: number	The amount of the item in the system
@@ -67,7 +67,7 @@ local function ExportItem(ItemID, Amount)
     print(string.format("Exported %d %s", Amount, ItemID))
 end
 
-exportable_essences =   {"mysticalagriculture:inferium_essence",
+local exportable_essences =   {"mysticalagriculture:inferium_essence",
                         "mysticalagriculture:prudentium_essence",
                         "mysticalagriculture:tertium_essence",
                         "mysticalagriculture:imperium_essence",
@@ -80,8 +80,9 @@ exportable_essences =   {"mysticalagriculture:inferium_essence",
 --         print(essence.amount)
 --     end
 -- end
-ExportItem("mysticalagriculture:inferium_essence", 256)
-essence = GetItem("mysticalagriculture:inferium_essence")
+os.sleep(1)
+ExportItem("mysticalagriculture:inferium_essence", 1024)
+local essence = GetItem("mysticalagriculture:inferium_essence")
     if essence ~= 0 then -- Execute the block as long as GetItem does not return "0" (Refer to line 52)
         print(essence.displayName)
         print(essence.amount)
