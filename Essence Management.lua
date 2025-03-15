@@ -80,7 +80,7 @@ local exportable_essences =   {"mysticalagriculture:inferium_essence",
 --         print(essence.amount)
 --     end
 -- end
-os.sleep(1)
+
 ExportItem("mysticalagriculture:inferium_essence", 1024)
 local essence = GetItem("mysticalagriculture:inferium_essence")
     if essence ~= 0 then -- Execute the block as long as GetItem does not return "0" (Refer to line 52)
