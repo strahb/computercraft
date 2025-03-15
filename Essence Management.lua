@@ -26,7 +26,7 @@ monitor = peripheral.find("monitor") if peripheral.find("monitor") == nil then
         print("Monitor not found")
         print("Dashboard will not work but program will continue")
     else
-        monitor.setTextScale(0.5)
+        monitor.setTextScale(0.75)
         monitor.setCursorPos(1,1)
         monitor.clear()
 end
@@ -62,7 +62,7 @@ function ExportItem(ItemID, Amount)
         isCraftable: boolean	Whether the item has a crafting pattern or not
         nbt: string?	NBT to match the item on
         tags: table	A list of all of the item tags ]]
-    bridge.exportItem(FormattedQuery, "up")
+    bridge.exportItem(FormattedQuery, "left")
 end
 
 function CraftEssence(ItemToCraft, Amount)
@@ -81,18 +81,22 @@ function drawDashboard()
     -- Make sure we're writing to the monitor
     if monitor then
         monitor.clear()
-        monitor.setCursorPos(1,1)
-        monitor.write("=== Essence Dashboard ===")
-        monitor.setCursorPos(1,3)
+        monitor.setCursorPos(1, 1)
+        monitor.write("=== Essence Dashboard === Day " .. os.day())
+        -- Display each essence's amount starting from line 3
         for i, essence in ipairs(essences) do
             local item = GetItem(essence.ID)
             local amount = item.amount or 0
             local line = string.format("%-20s: %6d", essence.displayName, amount)
+            monitor.setCursorPos(1, 2 + i)
             monitor.write(line)
-            monitor.setCursorPos(1, 3 + i)
         end
+        -- Write the threshold information on line 10 (or adjust as needed)
+        monitor.setCursorPos(1, 10)
+        monitor.write(string.format("Threshold: %s", threshold))
     end
 end
+
 
 -- Essence objects declaration, all are grouped in an essences array. Kinda like how forge groups them all under the mysticalagriculture:essences tag
 Inferium = {ID = "mysticalagriculture:inferium_essence", tier = 1, displayName = "Inferium Essence", QuickLookup = "Inferium"}
@@ -107,7 +111,7 @@ essences = {Inferium, Prudentium, Tertium, Imperium, Supremium, Insanium}
 -- Helper function: Processes a conversion from a lower-tier essence to a higher-tier essence.
 -- It calculates how many batches (of 4) can be converted without exceeding the threshold. - THIS IS AI
 function processConversion(lowerEssence, higherEssence)
-    local threshold = 20  -- Define threshold for higher tier
+    threshold = 12288  -- Define threshold for higher tier
     local lowerItem = GetItem(lowerEssence.ID)
     local higherItem = GetItem(higherEssence.ID)
     
@@ -144,16 +148,3 @@ while true do
 
     sleep(1)  -- Wait for 1 second before checking again
 end
--- for _, essence in ipairs(essences) do
---     essence = GetItem(essence.ID)
---     if essence ~= 0 then -- Execute the block as long as GetItem does not return "0" (Refer to line 52)
---         print("index " .. _ .. ":" .. essence.amount .. " " .. essence.displayName)
---     end
--- end
-
--- ExportItem("mysticalagriculture:inferium_essence", 1024)
--- local essence = GetItem("mysticalagriculture:inferium_essence")
---     if essence ~= 0 then -- Execute the block as long as GetItem does not return "0" (Refer to line 52)
---         print(essence.displayName)
---         print(essence.amount)
---     end
