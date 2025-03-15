@@ -29,8 +29,6 @@ monitor = peripheral.find("monitor") if peripheral.find("monitor") == nil then
         monitor.setTextScale(0.5)
         monitor.setCursorPos(1,1)
         monitor.clear()
-        term.redirect(monitor)
-        print("Monitor Ready")
 end
 
 bridge = peripheral.find("meBridge") if bridge == nil then
@@ -45,11 +43,12 @@ end
 function GetItem(ItemID)
     -- Function to fetch item information from the bridge
     local item = bridge.getItem({name = ItemID})
-    if item then
+    if type(item) == "table" then
         return item
+    elseif type(item) == "number" then
+        return { amount = item }
     else
-        print("Item not found: " .. ItemID)
-        return 0 -- Return 0 if item is not found
+        return { amount = 0 }
     end
 end
 
@@ -71,13 +70,30 @@ function CraftEssence(ItemToCraft, Amount)
     for i, essence in ipairs(essences) do
         if essence.QuickLookup == ItemToCraft then
             local foundIndex = i
-            ExportItem(essences[(foundIndex - 1)].ID, Amount * 4) -- Need to figure out how to dynamically get the index
-            print(string.format("Crafted %d %s", Amount, essence.displayName))
+            ExportItem(essences[(foundIndex - 1)].ID, Amount * 4)
             break  -- Exit the loop once the value is found.
         end
     end
 end
-    
+
+-- Dashboard function that updates the monitor with current essence amounts - THIS IS AI
+function drawDashboard()
+    -- Make sure we're writing to the monitor
+    if monitor then
+        monitor.clear()
+        monitor.setCursorPos(1,1)
+        monitor.write("=== Essence Dashboard ===")
+        monitor.setCursorPos(1,3)
+        for i, essence in ipairs(essences) do
+            local item = GetItem(essence.ID)
+            local amount = item.amount or 0
+            local line = string.format("%-20s: %6d", essence.displayName, amount)
+            monitor.write(line)
+            monitor.setCursorPos(1, 3 + i)
+        end
+    end
+end
+
 -- Essence objects declaration, all are grouped in an essences array. Kinda like how forge groups them all under the mysticalagriculture:essences tag
 Inferium = {ID = "mysticalagriculture:inferium_essence", tier = 1, displayName = "Inferium Essence", QuickLookup = "Inferium"}
 Prudentium = {ID = "mysticalagriculture:prudentium_essence", tier = 2, displayName = "Prudentium Essence", QuickLookup = "Prudentium"}
@@ -88,9 +104,46 @@ Insanium = {ID = "mysticalagradditions:insanium_essence", tier = 6, displayName 
 
 essences = {Inferium, Prudentium, Tertium, Imperium, Supremium, Insanium}
 
-CraftEssence("Insanium", 64)
+-- Helper function: Processes a conversion from a lower-tier essence to a higher-tier essence.
+-- It calculates how many batches (of 4) can be converted without exceeding the threshold. - THIS IS AI
+function processConversion(lowerEssence, higherEssence)
+    local threshold = 20  -- Define threshold for higher tier
+    local lowerItem = GetItem(lowerEssence.ID)
+    local higherItem = GetItem(higherEssence.ID)
+    
+    local lowerAmount = lowerItem.amount or 0
+    local higherAmount = higherItem.amount or 0
+    
+    local possibleConversions = math.floor(lowerAmount / 4)
+    local neededConversions = threshold - higherAmount
+    local conversions = math.min(possibleConversions, neededConversions)
+    
+    if conversions > 0 then
+        -- Call CraftEssence with the target (higher tier) QuickLookup
+        CraftEssence(higherEssence.QuickLookup, conversions)
+        print(string.format("Converted %d %s into %d %s", conversions*4, lowerEssence.displayName, conversions, higherEssence.displayName))
+    elseif conversions < 0 then
+        print(string.format("%s over threshold", higherEssence.displayName))
+    end
+end
 
+while true do
+-- Main loop: Continuously run the recipe conversion chain.
+    -- Convert Inferium -> Prudentium
+    processConversion(Inferium, Prudentium)
+    -- Convert Prudentium -> Tertium
+    processConversion(Prudentium, Tertium)
+    -- Convert Tertium -> Imperium
+    processConversion(Tertium, Imperium)
+    -- Convert Imperium -> Supremium
+    processConversion(Imperium, Supremium)
+    -- Convert Supremium -> Insanium
+    processConversion(Supremium, Insanium)
+    
+    drawDashboard()
 
+    sleep(1)  -- Wait for 1 second before checking again
+end
 -- for _, essence in ipairs(essences) do
 --     essence = GetItem(essence.ID)
 --     if essence ~= 0 then -- Execute the block as long as GetItem does not return "0" (Refer to line 52)
