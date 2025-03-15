@@ -21,7 +21,7 @@
                     └──Inferium
 ]]
 
-local monitor = peripheral.find("monitor") if peripheral.find("monitor") == nil then
+monitor = peripheral.find("monitor") if peripheral.find("monitor") == nil then
     -- Find, wrap, and configure the monitor, if monitor not found the code output will remain the main terminal
         print("Monitor not found")
         print("Dashboard will not work but program will continue")
@@ -33,7 +33,7 @@ local monitor = peripheral.find("monitor") if peripheral.find("monitor") == nil 
         print("Monitor Ready")
 end
 
-local bridge = peripheral.find("meBridge") if bridge == nil then
+bridge = peripheral.find("meBridge") if bridge == nil then
     print("ME Bridge Not Found! Now exiting...")
     error()
 else
@@ -42,7 +42,7 @@ else
     print(string.format("Total Item Storage: %.2f GB", TotalStorage))
 end
 
-local function GetItem(ItemID)
+function GetItem(ItemID)
     -- Function to fetch item information from the bridge
     local item = bridge.getItem({name = ItemID})
     if item then
@@ -53,7 +53,7 @@ local function GetItem(ItemID)
     end
 end
 
-local function ExportItem(ItemID, Amount)
+function ExportItem(ItemID, Amount)
     -- Function to export item to the upper side of the bridge
     local FormattedQuery = { name = ItemID, count = Amount } --[[ Format the Query
         name: string	The registry name of the item
@@ -64,26 +64,43 @@ local function ExportItem(ItemID, Amount)
         nbt: string?	NBT to match the item on
         tags: table	A list of all of the item tags ]]
     bridge.exportItem(FormattedQuery, "up")
-    print(string.format("Exported %d %s", Amount, ItemID))
 end
 
-local exportable_essences =   {"mysticalagriculture:inferium_essence",
-                        "mysticalagriculture:prudentium_essence",
-                        "mysticalagriculture:tertium_essence",
-                        "mysticalagriculture:imperium_essence",
-                        "mysticalagriculture:supremium_essence"}
+function CraftEssence(ItemToCraft, Amount)
+    -- Core function that does the crafting
+    for i, essence in ipairs(essences) do
+        if essence.QuickLookup == ItemToCraft then
+            local foundIndex = i
+            ExportItem(essences[(foundIndex - 1)].ID, Amount * 4) -- Need to figure out how to dynamically get the index
+            print(string.format("Crafted %d %s", Amount, essence.displayName))
+            break  -- Exit the loop once the value is found.
+        end
+    end
+end
+    
+-- Essence objects declaration, all are grouped in an essences array. Kinda like how forge groups them all under the mysticalagriculture:essences tag
+Inferium = {ID = "mysticalagriculture:inferium_essence", tier = 1, displayName = "Inferium Essence", QuickLookup = "Inferium"}
+Prudentium = {ID = "mysticalagriculture:prudentium_essence", tier = 2, displayName = "Prudentium Essence", QuickLookup = "Prudentium"}
+Tertium = {ID = "mysticalagriculture:tertium_essence", tier = 3, displayName = "Tertium Essence", QuickLookup = "Tertium"}
+Imperium = {ID = "mysticalagriculture:imperium_essence", tier = 4, displayName = "Imperium Essence", QuickLookup = "Imperium"}
+Supremium = {ID = "mysticalagriculture:supremium_essence", tier = 5, displayName = "Supremium Essence", QuickLookup = "Supremium"}
+Insanium = {ID = "mysticalagradditions:insanium_essence", tier = 6, displayName = "Insanium Essence", QuickLookup = "Insanium"}
 
--- for i, EssenceName in ipairs(exportable_essences) do
---     essence = GetItem(EssenceName)
+essences = {Inferium, Prudentium, Tertium, Imperium, Supremium, Insanium}
+
+CraftEssence("Insanium", 64)
+
+
+-- for _, essence in ipairs(essences) do
+--     essence = GetItem(essence.ID)
+--     if essence ~= 0 then -- Execute the block as long as GetItem does not return "0" (Refer to line 52)
+--         print("index " .. _ .. ":" .. essence.amount .. " " .. essence.displayName)
+--     end
+-- end
+
+-- ExportItem("mysticalagriculture:inferium_essence", 1024)
+-- local essence = GetItem("mysticalagriculture:inferium_essence")
 --     if essence ~= 0 then -- Execute the block as long as GetItem does not return "0" (Refer to line 52)
 --         print(essence.displayName)
 --         print(essence.amount)
 --     end
--- end
-
-ExportItem("mysticalagriculture:inferium_essence", 1024)
-local essence = GetItem("mysticalagriculture:inferium_essence")
-    if essence ~= 0 then -- Execute the block as long as GetItem does not return "0" (Refer to line 52)
-        print(essence.displayName)
-        print(essence.amount)
-    end
