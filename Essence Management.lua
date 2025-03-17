@@ -97,21 +97,11 @@ function drawDashboard()
     end
 end
 
-
--- Essence objects declaration, all are grouped in an essences array. Kinda like how forge groups them all under the mysticalagriculture:essences tag
-Inferium = {ID = "mysticalagriculture:inferium_essence", tier = 1, displayName = "Inferium Essence", QuickLookup = "Inferium"}
-Prudentium = {ID = "mysticalagriculture:prudentium_essence", tier = 2, displayName = "Prudentium Essence", QuickLookup = "Prudentium"}
-Tertium = {ID = "mysticalagriculture:tertium_essence", tier = 3, displayName = "Tertium Essence", QuickLookup = "Tertium"}
-Imperium = {ID = "mysticalagriculture:imperium_essence", tier = 4, displayName = "Imperium Essence", QuickLookup = "Imperium"}
-Supremium = {ID = "mysticalagriculture:supremium_essence", tier = 5, displayName = "Supremium Essence", QuickLookup = "Supremium"}
-Insanium = {ID = "mysticalagradditions:insanium_essence", tier = 6, displayName = "Insanium Essence", QuickLookup = "Insanium"}
-
-essences = {Inferium, Prudentium, Tertium, Imperium, Supremium, Insanium}
-
 -- Helper function: Processes a conversion from a lower-tier essence to a higher-tier essence.
 -- It calculates how many batches (of 4) can be converted without exceeding the threshold. - THIS IS AI
 function processConversion(lowerEssence, higherEssence)
     threshold = 12288  -- Define threshold for higher tier
+    exportUpperLimit = 256 -- Hardcoded upper limit for the essences, the output machine has 4 slots for each essence hence 4*64=256 items max
     local lowerItem = GetItem(lowerEssence.ID)
     local higherItem = GetItem(higherEssence.ID)
     
@@ -122,14 +112,26 @@ function processConversion(lowerEssence, higherEssence)
     local neededConversions = threshold - higherAmount
     local conversions = math.min(possibleConversions, neededConversions)
     
-    if conversions > 0 then
+    local conversionsSanitized = math.min(conversions, exportUpperLimit/4)
+
+    if conversionsSanitized > 0 then
         -- Call CraftEssence with the target (higher tier) QuickLookup
-        CraftEssence(higherEssence.QuickLookup, conversions)
-        print(string.format("Converted %d %s into %d %s", conversions*4, lowerEssence.displayName, conversions, higherEssence.displayName))
+        CraftEssence(higherEssence.QuickLookup, conversionsSanitized*4)
+        print(string.format("Converted %d %s into %d %s", conversionsSanitized*4, lowerEssence.displayName, conversionsSanitized, higherEssence.displayName))
     elseif conversions < 0 then
         print(string.format("%s over threshold", higherEssence.displayName))
     end
 end
+
+-- Essence objects declaration, all are grouped in an essences array. Kinda like how forge groups them all under the mysticalagriculture:essences tag
+Inferium = {ID = "mysticalagriculture:inferium_essence", tier = 1, displayName = "Inferium Essence", QuickLookup = "Inferium"}
+Prudentium = {ID = "mysticalagriculture:prudentium_essence", tier = 2, displayName = "Prudentium Essence", QuickLookup = "Prudentium"}
+Tertium = {ID = "mysticalagriculture:tertium_essence", tier = 3, displayName = "Tertium Essence", QuickLookup = "Tertium"}
+Imperium = {ID = "mysticalagriculture:imperium_essence", tier = 4, displayName = "Imperium Essence", QuickLookup = "Imperium"}
+Supremium = {ID = "mysticalagriculture:supremium_essence", tier = 5, displayName = "Supremium Essence", QuickLookup = "Supremium"}
+Insanium = {ID = "mysticalagradditions:insanium_essence", tier = 6, displayName = "Insanium Essence", QuickLookup = "Insanium"}
+
+essences = {Inferium, Prudentium, Tertium, Imperium, Supremium, Insanium}
 
 while true do
 -- Main loop: Continuously run the recipe conversion chain.
