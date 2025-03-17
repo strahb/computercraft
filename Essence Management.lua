@@ -152,5 +152,5 @@ while true do
     
     drawDashboard()
 
-    sleep(1)  -- Wait for 1 second before checking again
+    sleep(0.5)  -- Wait for 1 second before checking again
 end
