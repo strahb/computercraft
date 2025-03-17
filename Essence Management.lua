@@ -82,18 +82,22 @@ function drawDashboard()
     if monitor then
         monitor.clear()
         monitor.setCursorPos(1, 1)
-        monitor.write("=== Essence Dashboard === Day " .. os.day())
-        -- Display each essence's amount starting from line 3
+        monitor.write("Essence Dashboard   | Day " .. os.day())
+        -- Write the essence names and threshold information, all static information
+        monitor.setCursorPos(1, 10)
+        monitor.write(string.format("Threshold: %d    | Limit: %3d", threshold, exportUpperLimit))
+        for i, essence in ipairs(essences) do
+            monitor.setCursorPos(1, 2 + i)
+            monitor.write(string.format("%-20s:", essence.displayName))
+        end
+        -- Display the essence counts, this is the only part that cycles giving the annoying monitor refresh
         for i, essence in ipairs(essences) do
             local item = GetItem(essence.ID)
             local amount = item.amount or 0
-            local line = string.format("%-20s: %6d", essence.displayName, amount)
-            monitor.setCursorPos(1, 2 + i)
+            local line = string.format(amount)
+            monitor.setCursorPos(23, 2 + i)
             monitor.write(line)
         end
-        -- Write the threshold information on line 10 (or adjust as needed)
-        monitor.setCursorPos(1, 10)
-        monitor.write(string.format("Threshold: %s", threshold))
     end
 end
 
@@ -116,7 +120,7 @@ function processConversion(lowerEssence, higherEssence)
 
     if conversionsSanitized > 0 then
         -- Call CraftEssence with the target (higher tier) QuickLookup
-        CraftEssence(higherEssence.QuickLookup, conversionsSanitized*4)
+        CraftEssence(higherEssence.QuickLookup, conversionsSanitized)
         print(string.format("Converted %d %s into %d %s", conversionsSanitized*4, lowerEssence.displayName, conversionsSanitized, higherEssence.displayName))
     elseif conversions < 0 then
         print(string.format("%s over threshold", higherEssence.displayName))
