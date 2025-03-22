@@ -1,7 +1,7 @@
 --[[ 
     Mystical Agriculture Essence Auto-Crafter
     --------------------------------------------------------------
-    This program automatically crafts higher-tier essences from a lower-tier source 
+    This program automatically crafts higher-tier Essences from a lower-tier source 
     until the higher-tier essence reaches a threshold of 12,000 items. 
     The program automatically ignores inferium essence and continues exporting 
     from the lower tier while under the threshold. Once the threshold is reached, 
@@ -77,10 +77,10 @@ end
 
 local function CraftEssence(ItemToCraft, Amount)
     -- Core function that does the crafting
-    for i, essence in ipairs(essences) do
+    for i, essence in ipairs(Essences) do
         if essence.QuickLookup == ItemToCraft then
             local foundIndex = i
-            ExportItem(essences[(foundIndex - 1)].ID, Amount * 4)
+            ExportItem(Essences[(foundIndex - 1)].ID, Amount * 4)
             break  -- Exit the loop once the value is found.
         end
     end
@@ -95,13 +95,13 @@ local function drawDashboard()
         monitor.write("Essence Dashboard   | Day " .. os.day())
         -- Write the essence names and threshold information, all static information
         monitor.setCursorPos(1, 10)
-        monitor.write(string.format("Threshold: %d    | Limit: %3d", threshold, exportUpperLimit))
-        for i, essence in ipairs(essences) do
+        monitor.write(string.format("Threshold: %d    | Limit: %3d", Threshold, ExportUpperLimit))
+        for i, essence in ipairs(Essences) do
             monitor.setCursorPos(1, 2 + i)
             monitor.write(string.format("%-20s:", essence.displayName))
         end
         -- Display the essence counts, this is the only part that cycles giving the annoying monitor refresh
-        for i, essence in ipairs(essences) do
+        for i, essence in ipairs(Essences) do
             local item = GetItem(essence.ID)
             local amount = item.amount or 0
             local line = string.format(amount)
@@ -114,8 +114,6 @@ end
 -- Helper function: Processes a conversion from a lower-tier essence to a higher-tier essence.
 -- It calculates how many batches (of 4) can be converted without exceeding the threshold. - THIS IS AI
 local function processConversion(lowerEssence, higherEssence)
-    threshold = 12288  -- Define threshold for higher tier
-    exportUpperLimit = 256 -- Hardcoded upper limit for the essences, the output machine has 4 slots for each essence hence 4*64=256 items max
     local lowerItem = GetItem(lowerEssence.ID)
     local higherItem = GetItem(higherEssence.ID)
     
@@ -123,7 +121,7 @@ local function processConversion(lowerEssence, higherEssence)
     local higherAmount = higherItem.amount or 0
     
     local possibleConversions = math.floor(lowerAmount / 4)
-    local neededConversions = threshold - higherAmount
+    local neededConversions = Threshold - higherAmount
     local conversions = math.min(possibleConversions, neededConversions)
     
     local conversionsSanitized = math.min(conversions, exportUpperLimit/4)
@@ -131,19 +129,23 @@ local function processConversion(lowerEssence, higherEssence)
     if conversionsSanitized > 0 then
         -- Call CraftEssence with the target (higher tier) QuickLookup
         CraftEssence(higherEssence.QuickLookup, conversionsSanitized)
+        term.setTextColor(colors.green)
         print(string.format(
-            "[%03d] %s -> [%03d] %s",
+            "%03d %s -> %03d %s",
             conversionsSanitized * 4,
             lowerEssence.QuickLookup,
             conversionsSanitized,
             higherEssence.QuickLookup
         ))
+        term.setTextColor(colors.white)
     elseif conversions < 0 then
+        term.setTextColor(colors.yellow)
         print(string.format("[000] %s over threshold", higherEssence.QuickLookup))
+        term.setTextColor(colors.white)
     end
 end
 
--- Essence objects declaration, all are grouped in an essences array. Kinda like how forge groups them all under the mysticalagriculture:essences tag
+-- Essence objects declaration, all are grouped in an Essences array. Kinda like how forge groups them all under the mysticalagriculture:Essences tag
 Inferium = {ID = "mysticalagriculture:inferium_essence", tier = 1, displayName = "Inferium Essence", QuickLookup = "Inferium"}
 Prudentium = {ID = "mysticalagriculture:prudentium_essence", tier = 2, displayName = "Prudentium Essence", QuickLookup = "Prudentium"}
 Tertium = {ID = "mysticalagriculture:tertium_essence", tier = 3, displayName = "Tertium Essence", QuickLookup = "Tertium"}
@@ -151,7 +153,10 @@ Imperium = {ID = "mysticalagriculture:imperium_essence", tier = 4, displayName =
 Supremium = {ID = "mysticalagriculture:supremium_essence", tier = 5, displayName = "Supremium Essence", QuickLookup = "Supremium"}
 Insanium = {ID = "mysticalagradditions:insanium_essence", tier = 6, displayName = "Insanium Essence", QuickLookup = "Insanium"}
 
-essences = {Inferium, Prudentium, Tertium, Imperium, Supremium, Insanium}
+Essences = {Inferium, Prudentium, Tertium, Imperium, Supremium, Insanium}
+
+Threshold = 12288  -- Define threshold for higher tier
+ExportUpperLimit = 512 -- Hardcoded upper limit for the Essences, the output machine has 4 slots for each essence hence 4*64=256 items max
 
 while true do
 -- Main loop: Continuously run the recipe conversion chain.
