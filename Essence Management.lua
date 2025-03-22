@@ -21,7 +21,7 @@
                     └──Inferium
 ]]
 
-monitor = peripheral.find("monitor") if peripheral.find("monitor") == nil then
+local monitor = peripheral.find("monitor") if peripheral.find("monitor") == nil then
     -- Find, wrap, and configure the monitor, if monitor not found the code output will remain the main terminal
         print("Monitor not found")
         print("Dashboard will not work but program will continue")
@@ -31,8 +31,18 @@ monitor = peripheral.find("monitor") if peripheral.find("monitor") == nil then
         monitor.clear()
 end
 
-bridge = peripheral.find("meBridge") if bridge == nil then
-    print("ME Bridge Not Found! Now exiting...")
+local bridge = peripheral.find("meBridge") if bridge == nil then
+    print("[Critical] ME Bridge Not Found! Now exiting...")
+    error()
+elseif bridge.isConnected() == false then
+    for i =1,5 do
+        print(string.format("[Attmpt %s] ME Network Offline!", math.floor(i)))
+        if bridge.isConnected() == true then 
+            break
+        end
+        os.sleep(1)
+    end
+    print("[Critical] ME Bridge Disconnected! Now exiting...")
     error()
 else
     local TotalStorage = bridge.getTotalItemStorage() / (1024*1024*1024)
@@ -40,7 +50,7 @@ else
     print(string.format("Total Item Storage: %.2f GB", TotalStorage))
 end
 
-function GetItem(ItemID)
+local function GetItem(ItemID)
     -- Function to fetch item information from the bridge
     local item = bridge.getItem({name = ItemID})
     if type(item) == "table" then
@@ -52,7 +62,7 @@ function GetItem(ItemID)
     end
 end
 
-function ExportItem(ItemID, Amount)
+local function ExportItem(ItemID, Amount)
     -- Function to export item to the upper side of the bridge
     local FormattedQuery = { name = ItemID, count = Amount } --[[ Format the Query
         name: string	The registry name of the item
@@ -65,7 +75,7 @@ function ExportItem(ItemID, Amount)
     bridge.exportItem(FormattedQuery, "left")
 end
 
-function CraftEssence(ItemToCraft, Amount)
+local function CraftEssence(ItemToCraft, Amount)
     -- Core function that does the crafting
     for i, essence in ipairs(essences) do
         if essence.QuickLookup == ItemToCraft then
@@ -77,7 +87,7 @@ function CraftEssence(ItemToCraft, Amount)
 end
 
 -- Dashboard function that updates the monitor with current essence amounts - THIS IS AI
-function drawDashboard()
+local function drawDashboard()
     -- Make sure we're writing to the monitor
     if monitor then
         monitor.clear()
@@ -103,7 +113,7 @@ end
 
 -- Helper function: Processes a conversion from a lower-tier essence to a higher-tier essence.
 -- It calculates how many batches (of 4) can be converted without exceeding the threshold. - THIS IS AI
-function processConversion(lowerEssence, higherEssence)
+local function processConversion(lowerEssence, higherEssence)
     threshold = 12288  -- Define threshold for higher tier
     exportUpperLimit = 256 -- Hardcoded upper limit for the essences, the output machine has 4 slots for each essence hence 4*64=256 items max
     local lowerItem = GetItem(lowerEssence.ID)
@@ -121,9 +131,15 @@ function processConversion(lowerEssence, higherEssence)
     if conversionsSanitized > 0 then
         -- Call CraftEssence with the target (higher tier) QuickLookup
         CraftEssence(higherEssence.QuickLookup, conversionsSanitized)
-        print(string.format("Converted %d %s into %d %s", conversionsSanitized*4, lowerEssence.displayName, conversionsSanitized, higherEssence.displayName))
+        print(string.format(
+            "[%03d] %s -> [%03d] %s",
+            conversionsSanitized * 4,
+            lowerEssence.QuickLookup,
+            conversionsSanitized,
+            higherEssence.QuickLookup
+        ))
     elseif conversions < 0 then
-        print(string.format("%s over threshold", higherEssence.displayName))
+        print(string.format("[000] %s over threshold", higherEssence.QuickLookup))
     end
 end
 
@@ -151,6 +167,4 @@ while true do
     processConversion(Supremium, Insanium)
     
     drawDashboard()
-
-    sleep(0.5)  -- Wait for 1 second before checking again
 end
