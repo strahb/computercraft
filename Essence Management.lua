@@ -153,8 +153,8 @@ Args = { ... } -- Arguments
 local function ArgumentParser(args)
     -- Argument Parser to start program with custom threshold/limit values
     local config = {
-        threshold = 12288, -- management.lua -threshold=<integer>
-        limit = 512 -- management.lua -limit=<integer>
+        threshold = 12288, -- management.lua -threshold=<integer> | Default value is 12288
+        limit = 256 -- management.lua -limit=<integer> | Default value is 256
     }
     for _, arg in ipairs(args) do -- The actual parser, takes the values in Args and separates them to key:value pairs (From -threshold=256 to threshold:256)
         local key, val = arg:match("^%-(%w+)=?(.*)$")
