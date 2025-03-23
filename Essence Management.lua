@@ -34,26 +34,27 @@ end
 
 local bridge = peripheral.find("meBridge")
 if bridge == nil then
+    -- Program exits if Bridge is not found and not wrapped
     print("[Critical] ME Bridge Not Found! Now exiting...")
     error()
 elseif bridge.isConnected() == false then
+    -- Program tries to connect each second for 5 seconds before it times out and exits
     for i = 1, 5 do
-        print(string.format("[Attmpt %s] ME Network Offline!", math.floor(i)))
+        print(string.format("[ATTEMPT %s] ME Network Offline!", math.floor(i)))
         if bridge.isConnected() == true then
             break
         end
         os.sleep(1)
     end
-    print("[Critical] ME Bridge Disconnected! Now exiting...")
+    print("[CRITICAL] ME Bridge Disconnected! Now exiting...")
     error()
-else
-    local TotalStorage = bridge.getTotalItemStorage() / (1024 * 1024 * 1024)
-    print("ME Bridge Connected")
-    print(string.format("Total Item Storage: %.2f GB", TotalStorage))
+elseif bridge.isConnected() == true then
+    -- If bridge peripheral is found and ME network is connected, shows the welcome message
+    print("[INFORMATION] ME Bridge Connected")
 end
 
 local function GetItem(ItemID)
-    -- Function to fetch item information from the bridge
+    -- Function to fetch item information from the ME Network via the bridge
     local item = bridge.getItem({ name = ItemID })
     if type(item) == "table" then
         return item
@@ -88,7 +89,7 @@ local function CraftEssence(ItemToCraft, Amount)
     end
 end
 
--- Dashboard function that updates the monitor with current essence amounts - THIS IS AI
+-- Dashboard function that updates the monitor with current essence amounts
 local function drawDashboard()
     -- Make sure we're writing to the monitor
     if monitor then
@@ -142,25 +143,26 @@ local function processConversion(lowerEssence, higherEssence)
         term.setTextColor(colors.white)
     elseif conversions < 0 then
         term.setTextColor(colors.yellow)
-        print(string.format("[000] %s over threshold", higherEssence.QuickLookup))
+        print(string.format("000 %s over threshold", higherEssence.QuickLookup))
         term.setTextColor(colors.white)
     end
 end
 
-Args = { ... }
+Args = { ... } -- Arguments
 
 local function ArgumentParser(args)
+    -- Argument Parser to start program with custom threshold/limit values
     local config = {
-        Threshold = 12288,
-        ExportUpperLimit = 512
+        threshold = 12288, -- management.lua -threshold=<integer>
+        limit = 512 -- management.lua -limit=<integer>
     }
-    for _, arg in ipairs(args) do
-        local key, val = arg:match("^%-%-(%w+)=?(.*)$")
+    for _, arg in ipairs(args) do -- The actual parser, takes the values in Args and separates them to key:value pairs (From -threshold=256 to threshold:256)
+        local key, val = arg:match("^%-(%w+)=?(.*)$")
         if key and tonumber(val) then
-            config[key] = tonumber(val)
+            config[key] = tonumber(val) -- Updates the variables
         end
     end
-    return config
+    return config -- returns the table
 end
 
 -- Essence objects declaration, all are grouped in an Essences array. Kinda like how forge groups them all under the mysticalagriculture:Essences tag
@@ -179,8 +181,9 @@ Insanium = { ID = "mysticalagradditions:insanium_essence", tier = 6, displayName
 
 Essences = { Inferium, Prudentium, Tertium, Imperium, Supremium, Insanium }
 
-Threshold = ArgumentParser(Args).Threshold
-ExportUpperLimit = ArgumentParser(Args).Threshold
+-- Define the global variables from the ArgumentParser
+Threshold = ArgumentParser(Args).threshold
+ExportUpperLimit = ArgumentParser(Args).limit
 
 while true do
     -- Main loop: Continuously run the recipe conversion chain.
