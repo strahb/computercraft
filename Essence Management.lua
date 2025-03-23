@@ -1,43 +1,45 @@
---[[ 
+--[[
     Mystical Agriculture Essence Auto-Crafter
     --------------------------------------------------------------
-    This program automatically crafts higher-tier Essences from a lower-tier source 
-    until the higher-tier essence reaches a threshold of 12,000 items. 
-    The program automatically ignores inferium essence and continues exporting 
-    from the lower tier while under the threshold. Once the threshold is reached, 
+    This program automatically crafts higher-tier Essences from a lower-tier source
+    until the higher-tier essence reaches a threshold of 12,000 items.
+    The program automatically ignores inferium essence and continues exporting
+    from the lower tier while under the threshold. Once the threshold is reached,
     or if the essence is inferium, the program stops exporting from the lower tier.
-    
+
     It keeps exporting the second highest tier until the highest tier is fully crafted
-    and then it stops exporting the second highest. ALL ESSENCE IS EXPORTED BY DEFAULT 
+    and then it stops exporting the second highest. ALL ESSENCE IS EXPORTED BY DEFAULT
     The recipe is:  4x Lower Tier = 1x Higher Tier
-        Supremium                          
-        │                            
-        └──Imperium                  
-            │                    
-            └──Tertium           
-                │            
+        Supremium
+        │
+        └──Imperium
+            │
+            └──Tertium
+                │
                 └──Prudentium
-                    │  
+                    │
                     └──Inferium
 ]]
 
-local monitor = peripheral.find("monitor") if peripheral.find("monitor") == nil then
+local monitor = peripheral.find("monitor")
+if monitor == nil then
     -- Find, wrap, and configure the monitor, if monitor not found the code output will remain the main terminal
-        print("Monitor not found")
-        print("Dashboard will not work but program will continue")
-    else
-        monitor.setTextScale(0.75)
-        monitor.setCursorPos(1,1)
-        monitor.clear()
+    print("Monitor not found")
+    print("Dashboard will not work but program will continue")
+else
+    monitor.setTextScale(0.75)
+    monitor.setCursorPos(1, 1)
+    monitor.clear()
 end
 
-local bridge = peripheral.find("meBridge") if bridge == nil then
+local bridge = peripheral.find("meBridge")
+if bridge == nil then
     print("[Critical] ME Bridge Not Found! Now exiting...")
     error()
 elseif bridge.isConnected() == false then
-    for i =1,5 do
+    for i = 1, 5 do
         print(string.format("[Attmpt %s] ME Network Offline!", math.floor(i)))
-        if bridge.isConnected() == true then 
+        if bridge.isConnected() == true then
             break
         end
         os.sleep(1)
@@ -45,14 +47,14 @@ elseif bridge.isConnected() == false then
     print("[Critical] ME Bridge Disconnected! Now exiting...")
     error()
 else
-    local TotalStorage = bridge.getTotalItemStorage() / (1024*1024*1024)
+    local TotalStorage = bridge.getTotalItemStorage() / (1024 * 1024 * 1024)
     print("ME Bridge Connected")
     print(string.format("Total Item Storage: %.2f GB", TotalStorage))
 end
 
 local function GetItem(ItemID)
     -- Function to fetch item information from the bridge
-    local item = bridge.getItem({name = ItemID})
+    local item = bridge.getItem({ name = ItemID })
     if type(item) == "table" then
         return item
     elseif type(item) == "number" then
@@ -81,7 +83,7 @@ local function CraftEssence(ItemToCraft, Amount)
         if essence.QuickLookup == ItemToCraft then
             local foundIndex = i
             ExportItem(Essences[(foundIndex - 1)].ID, Amount * 4)
-            break  -- Exit the loop once the value is found.
+            break -- Exit the loop once the value is found.
         end
     end
 end
@@ -116,15 +118,15 @@ end
 local function processConversion(lowerEssence, higherEssence)
     local lowerItem = GetItem(lowerEssence.ID)
     local higherItem = GetItem(higherEssence.ID)
-    
+
     local lowerAmount = lowerItem.amount or 0
     local higherAmount = higherItem.amount or 0
-    
+
     local possibleConversions = math.floor(lowerAmount / 4)
     local neededConversions = Threshold - higherAmount
     local conversions = math.min(possibleConversions, neededConversions)
-    
-    local conversionsSanitized = math.min(conversions, exportUpperLimit/4)
+
+    local conversionsSanitized = math.min(conversions, ExportUpperLimit / 4)
 
     if conversionsSanitized > 0 then
         -- Call CraftEssence with the target (higher tier) QuickLookup
@@ -145,21 +147,43 @@ local function processConversion(lowerEssence, higherEssence)
     end
 end
 
+Args = { ... }
+
+local function ArgumentParser(args)
+    local config = {
+        Threshold = 12288,
+        ExportUpperLimit = 512
+    }
+    for _, arg in ipairs(args) do
+        local key, val = arg:match("^%-%-(%w+)=?(.*)$")
+        if key and tonumber(val) then
+            config[key] = tonumber(val)
+        end
+    end
+    return config
+end
+
 -- Essence objects declaration, all are grouped in an Essences array. Kinda like how forge groups them all under the mysticalagriculture:Essences tag
-Inferium = {ID = "mysticalagriculture:inferium_essence", tier = 1, displayName = "Inferium Essence", QuickLookup = "Inferium"}
-Prudentium = {ID = "mysticalagriculture:prudentium_essence", tier = 2, displayName = "Prudentium Essence", QuickLookup = "Prudentium"}
-Tertium = {ID = "mysticalagriculture:tertium_essence", tier = 3, displayName = "Tertium Essence", QuickLookup = "Tertium"}
-Imperium = {ID = "mysticalagriculture:imperium_essence", tier = 4, displayName = "Imperium Essence", QuickLookup = "Imperium"}
-Supremium = {ID = "mysticalagriculture:supremium_essence", tier = 5, displayName = "Supremium Essence", QuickLookup = "Supremium"}
-Insanium = {ID = "mysticalagradditions:insanium_essence", tier = 6, displayName = "Insanium Essence", QuickLookup = "Insanium"}
+Inferium = { ID = "mysticalagriculture:inferium_essence", tier = 1, displayName = "Inferium Essence", QuickLookup =
+"Inferium" }
+Prudentium = { ID = "mysticalagriculture:prudentium_essence", tier = 2, displayName = "Prudentium Essence", QuickLookup =
+"Prudentium" }
+Tertium = { ID = "mysticalagriculture:tertium_essence", tier = 3, displayName = "Tertium Essence", QuickLookup =
+"Tertium" }
+Imperium = { ID = "mysticalagriculture:imperium_essence", tier = 4, displayName = "Imperium Essence", QuickLookup =
+"Imperium" }
+Supremium = { ID = "mysticalagriculture:supremium_essence", tier = 5, displayName = "Supremium Essence", QuickLookup =
+"Supremium" }
+Insanium = { ID = "mysticalagradditions:insanium_essence", tier = 6, displayName = "Insanium Essence", QuickLookup =
+"Insanium" }
 
-Essences = {Inferium, Prudentium, Tertium, Imperium, Supremium, Insanium}
+Essences = { Inferium, Prudentium, Tertium, Imperium, Supremium, Insanium }
 
-Threshold = 12288  -- Define threshold for higher tier
-ExportUpperLimit = 512 -- Hardcoded upper limit for the Essences, the output machine has 4 slots for each essence hence 4*64=256 items max
+Threshold = ArgumentParser(Args).Threshold
+ExportUpperLimit = ArgumentParser(Args).Threshold
 
 while true do
--- Main loop: Continuously run the recipe conversion chain.
+    -- Main loop: Continuously run the recipe conversion chain.
     -- Convert Inferium -> Prudentium
     processConversion(Inferium, Prudentium)
     -- Convert Prudentium -> Tertium
@@ -170,6 +194,6 @@ while true do
     processConversion(Imperium, Supremium)
     -- Convert Supremium -> Insanium
     processConversion(Supremium, Insanium)
-    
+
     drawDashboard()
 end
