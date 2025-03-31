@@ -141,9 +141,9 @@ local function processConversion(lowerEssence, higherEssence)
             higherEssence.QuickLookup
         ))
         term.setTextColor(colors.white)
-    elseif conversions < 0 then
+    elseif conversionsSanitized <= 0 then
         term.setTextColor(colors.yellow)
-        print(string.format("000 %s over threshold", higherEssence.QuickLookup))
+        print(string.format("--- %s over threshold", higherEssence.QuickLookup))
         term.setTextColor(colors.white)
     end
 end
