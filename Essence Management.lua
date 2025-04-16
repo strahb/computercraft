@@ -11,14 +11,10 @@
     and then it stops exporting the second highest. ALL ESSENCE IS EXPORTED BY DEFAULT
     The recipe is:  4x Lower Tier = 1x Higher Tier
         Supremium
-        │
-        └──Imperium
-            │
-            └──Tertium
-                │
-                └──Prudentium
-                    │
-                    └──Inferium
+            Imperium
+                Tertium
+                    Prudentium
+                        Inferium
 ]]
 
 local monitor = peripheral.find("monitor")
